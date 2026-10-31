@@ -28,8 +28,10 @@ import Reports from './pages/reports/Reports';
 import BillingRecords from './pages/billing/BillingRecords';
 import AuditLogs from './pages/audit/AuditLogs';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+// Role & Permission Protected Route
+const ProtectedRoute = ({ children, roles }) => {
+  const { user, loading, hasRole } = useAuth();
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -37,9 +39,16 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+
+  // Permission-based route blocking: if user does not possess required role, redirect to home
+  if (roles && !hasRole(roles)) {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 };
 
@@ -64,36 +73,117 @@ export const App = () => {
             >
               <Route index element={<Dashboard />} />
 
-              {/* Subscriptions */}
+              {/* Subscriptions (Admin, Staff, Customer) */}
               <Route path="subscriptions" element={<SubscriptionList />} />
               <Route path="subscriptions/kanban" element={<SubscriptionKanban />} />
-              <Route path="subscriptions/new" element={<SubscriptionForm />} />
+              <Route
+                path="subscriptions/new"
+                element={
+                  <ProtectedRoute roles={['ADMIN', 'STAFF']}>
+                    <SubscriptionForm />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="subscriptions/:id" element={<SubscriptionDetail />} />
 
-              {/* Quotations */}
+              {/* Quotations (Admin, Staff, Customer) */}
               <Route path="quotations" element={<QuotationList />} />
-              <Route path="quotations/new" element={<QuotationForm />} />
+              <Route
+                path="quotations/new"
+                element={
+                  <ProtectedRoute roles={['ADMIN', 'STAFF']}>
+                    <QuotationForm />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="quotations/:id" element={<QuotationDetail />} />
 
-              {/* Invoices */}
+              {/* Invoices (Admin, Staff, Customer) */}
               <Route path="invoices" element={<InvoiceList />} />
-              <Route path="invoices/new" element={<InvoiceForm />} />
+              <Route
+                path="invoices/new"
+                element={
+                  <ProtectedRoute roles={['ADMIN', 'STAFF']}>
+                    <InvoiceForm />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="invoices/:id" element={<InvoiceDetail />} />
 
-              {/* Payments */}
+              {/* Payments (Admin, Staff, Customer) */}
               <Route path="payments" element={<PaymentList />} />
 
-              {/* Masters */}
-              <Route path="customers" element={<CustomerList />} />
-              <Route path="products" element={<ProductList />} />
-              <Route path="plans" element={<PlanList />} />
-              <Route path="discounts" element={<DiscountList />} />
-              <Route path="taxes" element={<TaxList />} />
+              {/* CRM & Masters (Admin & Staff Only) */}
+              <Route
+                path="customers"
+                element={
+                  <ProtectedRoute roles={['ADMIN', 'STAFF']}>
+                    <CustomerList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="products"
+                element={
+                  <ProtectedRoute roles={['ADMIN', 'STAFF']}>
+                    <ProductList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="plans"
+                element={
+                  <ProtectedRoute roles={['ADMIN', 'STAFF']}>
+                    <PlanList />
+                  </ProtectedRoute>
+                }
+              />
 
-              {/* Reports & Operations */}
-              <Route path="reports" element={<Reports />} />
-              <Route path="billing" element={<BillingRecords />} />
-              <Route path="audit-logs" element={<AuditLogs />} />
+              {/* Analytics & Reports (Admin & Staff Only) */}
+              <Route
+                path="reports"
+                element={
+                  <ProtectedRoute roles={['ADMIN', 'STAFF']}>
+                    <Reports />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Pricing Rules & Discounts (Admin Only) */}
+              <Route
+                path="discounts"
+                element={
+                  <ProtectedRoute roles={['ADMIN']}>
+                    <DiscountList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="taxes"
+                element={
+                  <ProtectedRoute roles={['ADMIN']}>
+                    <TaxList />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Automated Engine & Security Audit (Admin Only) */}
+              <Route
+                path="billing"
+                element={
+                  <ProtectedRoute roles={['ADMIN']}>
+                    <BillingRecords />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="audit-logs"
+                element={
+                  <ProtectedRoute roles={['ADMIN']}>
+                    <AuditLogs />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             {/* Fallback */}

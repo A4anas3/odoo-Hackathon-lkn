@@ -4,6 +4,7 @@ import { Plus, Search, Filter, FileText, ChevronLeft, ChevronRight, Eye } from '
 import { quotationApi } from '../../api/client';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useToast } from '../../context/ToastContext';
+import PermissionGuard from '../../components/common/PermissionGuard';
 
 export const QuotationList = () => {
   const [quotations, setQuotations] = useState([]);

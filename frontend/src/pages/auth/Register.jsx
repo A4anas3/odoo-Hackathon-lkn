@@ -1,22 +1,36 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Phone, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, Phone, Building2, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 export const Register = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    password: '',
+    companyName: '',
     phone: '',
-    roleName: 'ROLE_STAFF',
+    password: '',
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.password !== formData.confirmPassword) {
+      showToast('Passwords do not match.', 'error');
+      return;
+    }
+
+    if (formData.password.length < 9) {
+      showToast('Password must be more than 8 characters long.', 'error');
+      return;
+    }
+
     setLoading(true);
     try {
       const ok = await register(formData);
@@ -24,7 +38,7 @@ export const Register = () => {
         navigate('/');
       }
     } catch {
-      // Handled by Toast
+      // Handled by Toast in AuthContext
     } finally {
       setLoading(false);
     }
@@ -39,14 +53,14 @@ export const Register = () => {
           </div>
           <h1 className="text-2xl font-bold text-black tracking-tight">Create Brightloop Account</h1>
           <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">
-            Enterprise Subscription Access
+            Customer Self-Service Portal Access
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
             <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
-              Full Name
+              Full Name *
             </label>
             <div className="relative">
               <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -55,7 +69,7 @@ export const Register = () => {
                 required
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                placeholder="John Doe"
+                placeholder="Rajesh Sharma"
                 className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#714B67] transition-all"
               />
             </div>
@@ -63,7 +77,23 @@ export const Register = () => {
 
           <div>
             <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
-              Work Email
+              Company / Business Name
+            </label>
+            <div className="relative">
+              <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              <input
+                type="text"
+                value={formData.companyName}
+                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                placeholder="Apex Solutions Pvt Ltd"
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#714B67] transition-all"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
+              Work Email *
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -72,7 +102,7 @@ export const Register = () => {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john@company.com"
+                placeholder="rajesh@apexsolutions.com"
                 className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#714B67] transition-all"
               />
             </div>
@@ -96,7 +126,7 @@ export const Register = () => {
 
           <div>
             <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
-              Password
+              Password *
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -105,25 +135,30 @@ export const Register = () => {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="••••••••"
+                placeholder="••••••••••••"
                 className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#714B67] transition-all"
               />
             </div>
+            <p className="text-[10px] text-slate-500 mt-1">
+              Must be &gt;8 characters, with uppercase, lowercase, and a special symbol.
+            </p>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
-              Account Role
+              Confirm Password *
             </label>
-            <select
-              value={formData.roleName}
-              onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
-              className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-black focus:outline-none focus:ring-2 focus:ring-[#714B67] transition-all"
-            >
-              <option value="ROLE_STAFF">Staff Member</option>
-              <option value="ROLE_ADMIN">Administrator</option>
-              <option value="ROLE_CUSTOMER">Portal Customer</option>
-            </select>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              <input
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                placeholder="••••••••••••"
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#714B67] transition-all"
+              />
+            </div>
           </div>
 
           <button
@@ -131,14 +166,14 @@ export const Register = () => {
             disabled={loading}
             className="w-full py-2.5 px-4 rounded-lg bg-[#714B67] hover:bg-[#5d3d54] text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center space-x-2 disabled:opacity-50 mt-4"
           >
-            <span>{loading ? 'Creating Account...' : 'Complete Registration'}</span>
+            <span>{loading ? 'Creating Account...' : 'Complete Customer Registration'}</span>
             {!loading && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
 
         <div className="text-center mt-6 pt-4 border-t border-slate-200">
           <p className="text-xs text-slate-600">
-            Already registered?{' '}
+            Already have an account?{' '}
             <Link to="/login" className="font-bold text-[#714B67] hover:underline">
               Sign in here
             </Link>

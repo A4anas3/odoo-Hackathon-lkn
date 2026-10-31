@@ -15,6 +15,7 @@ import {
 import { subscriptionApi } from '../../api/client';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useToast } from '../../context/ToastContext';
+import PermissionGuard from '../../components/common/PermissionGuard';
 
 export const SubscriptionList = () => {
   const [subscriptions, setSubscriptions] = useState([]);

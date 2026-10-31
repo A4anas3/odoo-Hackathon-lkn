@@ -4,6 +4,7 @@ import { Plus, Search, Filter, Receipt, ChevronLeft, ChevronRight, Eye, Download
 import { invoiceApi } from '../../api/client';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useToast } from '../../context/ToastContext';
+import PermissionGuard from '../../components/common/PermissionGuard';
 
 export const InvoiceList = () => {
   const [invoices, setInvoices] = useState([]);

@@ -16,27 +16,52 @@ import {
   ShieldCheck,
   LogOut,
   X,
+  Shield,
+  UserCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Subscriptions', href: '/subscriptions', icon: Repeat },
-  { name: 'Quotations', href: '/quotations', icon: FileText },
-  { name: 'Invoices', href: '/invoices', icon: Receipt },
-  { name: 'Payments', href: '/payments', icon: CreditCard },
-  { name: 'Customers', href: '/customers', icon: Users },
-  { name: 'Products', href: '/products', icon: Package },
-  { name: 'Plans', href: '/plans', icon: Calendar },
-  { name: 'Discounts', href: '/discounts', icon: Tag },
-  { name: 'Taxes', href: '/taxes', icon: Percent },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Billing Runs', href: '/billing', icon: RefreshCw },
-  { name: 'Audit Logs', href: '/audit-logs', icon: ShieldCheck },
+  // Core Modules (Accessible to all authenticated users)
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['ADMIN', 'STAFF', 'CUSTOMER'], section: 'Overview' },
+  { name: 'Subscriptions', href: '/subscriptions', icon: Repeat, roles: ['ADMIN', 'STAFF', 'CUSTOMER'], section: 'Recurring Billing' },
+  { name: 'Quotations', href: '/quotations', icon: FileText, roles: ['ADMIN', 'STAFF', 'CUSTOMER'], section: 'Recurring Billing' },
+  { name: 'Invoices', href: '/invoices', icon: Receipt, roles: ['ADMIN', 'STAFF', 'CUSTOMER'], section: 'Recurring Billing' },
+  { name: 'Payments', href: '/payments', icon: CreditCard, roles: ['ADMIN', 'STAFF', 'CUSTOMER'], section: 'Recurring Billing' },
+
+  // Management Master Data (Admin & Staff only)
+  { name: 'Customers', href: '/customers', icon: Users, roles: ['ADMIN', 'STAFF'], section: 'Master Data' },
+  { name: 'Products', href: '/products', icon: Package, roles: ['ADMIN', 'STAFF'], section: 'Master Data' },
+  { name: 'Plans', href: '/plans', icon: Calendar, roles: ['ADMIN', 'STAFF'], section: 'Master Data' },
+  { name: 'Reports', href: '/reports', icon: BarChart3, roles: ['ADMIN', 'STAFF'], section: 'Analytics' },
+
+  // Administrative Engine (Admin only)
+  { name: 'Discounts', href: '/discounts', icon: Tag, roles: ['ADMIN'], section: 'Settings' },
+  { name: 'Taxes', href: '/taxes', icon: Percent, roles: ['ADMIN'], section: 'Settings' },
+  { name: 'Billing Runs', href: '/billing', icon: RefreshCw, roles: ['ADMIN'], section: 'Engine' },
+  { name: 'Audit Logs', href: '/audit-logs', icon: ShieldCheck, roles: ['ADMIN'], section: 'Engine' },
 ];
 
 export const Sidebar = ({ isOpen, onClose }) => {
-  const { user, logout } = useAuth();
+  const { user, role, hasRole, logout } = useAuth();
+
+  // Filter navigation items permission-wise
+  const visibleNav = navigation.filter((item) => hasRole(item.roles));
+
+  // Determine role display properties
+  const getRoleBadge = () => {
+    switch (role) {
+      case 'ADMIN':
+        return { label: 'Administrator', bg: 'bg-purple-100 text-[#714B67] border-purple-300' };
+      case 'STAFF':
+        return { label: 'Billing Staff', bg: 'bg-blue-100 text-blue-800 border-blue-300' };
+      case 'CUSTOMER':
+      default:
+        return { label: 'Customer Portal', bg: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+    }
+  };
+
+  const badge = getRoleBadge();
 
   return (
     <>
@@ -63,7 +88,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
             <div>
               <span className="font-bold text-base text-black tracking-tight block">Brightloop</span>
               <span className="text-[10px] uppercase font-semibold tracking-wider text-[#714B67] block -mt-1">
-                ERP Subscription
+                {role === 'CUSTOMER' ? 'Customer Portal' : 'ERP Subscription'}
               </span>
             </div>
           </div>
@@ -77,7 +102,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
 
         {/* Navigation Links */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          {navigation.map((item) => {
+          {visibleNav.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -101,16 +126,16 @@ export const Sidebar = ({ isOpen, onClose }) => {
           })}
         </div>
 
-        {/* User Card & Logout */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50/50">
+        {/* User Card & Logout with Role Badge */}
+        <div className="p-4 border-t border-slate-200 bg-slate-50/50 space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 truncate">
-              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 uppercase">
+              <div className="w-8 h-8 rounded-full bg-[#714B67]/10 text-[#714B67] flex items-center justify-center text-xs font-bold uppercase">
                 {user?.fullName ? user.fullName[0] : user?.email ? user.email[0] : 'U'}
               </div>
               <div className="truncate">
                 <p className="text-xs font-bold text-black truncate">{user?.fullName || 'User'}</p>
-                <p className="text-[10px] text-slate-600 truncate">{user?.email}</p>
+                <p className="text-[10px] text-slate-500 truncate">{user?.email}</p>
               </div>
             </div>
             <button
@@ -120,6 +145,14 @@ export const Sidebar = ({ isOpen, onClose }) => {
             >
               <LogOut className="w-4 h-4" />
             </button>
+          </div>
+          <div className="pt-1">
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}
+            >
+              <Shield className="w-3 h-3 mr-1" />
+              {badge.label}
+            </span>
           </div>
         </div>
       </aside>
