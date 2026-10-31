@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Database Service (PostgreSQL 17)
+  postgres:
+    image: postgres:17-alpine
+    container_name: brightloop-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-brightloop}
+      POSTGRES_USER: ${POSTGRES_USER:-brightloop_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-brightloop_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-brightloop_user} -d ${POSTGRES_DB:-brightloop}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - brightloop-net
+
+  # Backend Enterprise Service (Spring Boot 3.4.2 / Java 21 LTS)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: brightloop-backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      # Supports local container or cloud Supabase URI via .env
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/brightloop?stringtype=unspecified}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-brightloop_user}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-brightloop_password}
+      JWT_SECRET: ${JWT_SECRET:-BrightloopErpEnterpriseSecretKeyMustBeAtLeast512BitsLongForHS512SecurityCompliance2026}
+      JWT_EXPIRATION_MS: 86400000
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-mock@brightloop.local}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-mockpassword}
+    ports:
+      - "8080:8080"
+    networks:
+      - brightloop-net
+
+  # Frontend Enterprise SPA (React 19 + Vite + Tailwind CSS on Nginx Alpine)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: brightloop-frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - brightloop-net
+
+networks:
+  brightloop-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

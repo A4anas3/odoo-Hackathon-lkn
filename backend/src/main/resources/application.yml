@@ -1,0 +1,75 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: brightloop-erp-backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/brightloop?stringtype=unspecified}
+    username: ${SPRING_DATASOURCE_USERNAME:brightloop_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:brightloop_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    locations: classpath:db/migration
+
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:mock@brightloop.local}
+    password: ${SMTP_PASSWORD:mockpassword}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+jwt:
+  secret: ${JWT_SECRET:BrightloopERPEnterpriseProductionGradeSecretKey2026SecureLongKeyThatMeetsMinimum256BitsRequirement}
+  access-token-expiration-ms: 86400000 # 24 hours
+  refresh-token-expiration-ms: 604800000 # 7 days
+
+app:
+  billing:
+    cron: "0 */5 * * * *" # Every 5 minutes
+    timezone: "Asia/Kolkata"
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000,http://100.127.225.15:5173}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    root: INFO
+    com.brightloop: INFO
+    org.hibernate.SQL: WARN
