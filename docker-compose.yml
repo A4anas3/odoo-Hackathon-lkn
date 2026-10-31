@@ -18,7 +18,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-brightloop_user} -d ${POSTGRES_DB:-brightloop}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 30s
     networks:
       - brightloop-net
 
