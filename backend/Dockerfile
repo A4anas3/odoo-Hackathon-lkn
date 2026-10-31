@@ -1,14 +1,12 @@
+# syntax=docker/dockerfile:1
 # Multi-stage build for Brightloop ERP Spring Boot Backend
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 
-# Cache dependencies
+# Build application with cached Maven repository
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Build application
 COPY src ./src
-RUN mvn clean package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests -B
 
 # Runtime container
 FROM eclipse-temurin:21-jre-alpine
